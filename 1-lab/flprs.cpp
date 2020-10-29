@@ -32,11 +32,11 @@ double evaluateSolution(int *X);
 //=============================================================================
 
 int main() {
-	
+
 	double t_start = getTime();          // Algoritmo vykdymo pradzios laikas
 
 	loadDemandPoints();             // Nuskaitomi duomenys
-	
+
 	X = new int[numX];				// Sprendinys
 	double u;						// Sprendinio tikslo funkcijos reiksme
 	int *bestX = new int[numX];		// Geriausias rastas sprendinys
@@ -49,23 +49,23 @@ int main() {
 	exportMatrix();
 	// importMatrix();
 	double t_data_loaded = getTime();
-	
+
 
 	//----- Pagrindinis ciklas ------------------------------------------------
-	
-	for (int iters=0; iters<115000; iters++) {
+
+	for (int iters=0; iters<2848; iters++) {
 		// Generuojam atsitiktini sprendini ir tikrinam ar jis nera geresnis uz geriausia zinoma
 		randomSolution(X);
 		u = evaluateSolution(X);
 		if (u > bestU) {     // Jei geresnis, tai issaugojam kaip geriausia zinoma
 			bestU = u;
 			for (int i=0; i<numX; i++) bestX[i] = X[i];
-			printf("Best result is: %f \n", bestU);
+			// printf("Best result is: %f \n", bestU);
 		}
 		// if (iters % 100 == 0) printf("i = %d \n", iters);
 	}
 	//----- Rezultatu spausdinimas --------------------------------------------
-	
+
 	double t_calc_finished = getTime();     // Skaiciavimu pabaigos laikas
 
 	cout << "Geriausias sprendinys: ";
@@ -79,7 +79,7 @@ int main() {
 //=============================================================================
 
 void loadDemandPoints() {
-	
+
 	//----- Load demand points ------------------------------------------------
 	FILE *f;
 	f = fopen("demandPoints.dat", "r");
@@ -96,9 +96,9 @@ void loadDemandPoints() {
 void createDistanceMatrix() {
 	distanceMatrix = new double[numDP*(numCL + 1)]; // new double[numDP*numDP];
 	#pragma omp parallel for
-	for (int i=0; i<numCL + 1; i++) 
+	for (int i=0; i<numCL + 1; i++)
 		for (int j=0; j<numDP; j++) {
-		distanceMatrix[i*numDP + j] = HaversineDistance(demandPoints[i], demandPoints[j]);	
+		distanceMatrix[i*numDP + j] = HaversineDistance(demandPoints[i], demandPoints[j]);
 	}
 }
 
@@ -117,7 +117,7 @@ void importMatrix() {
 		rf.read((char *) &distanceMatrix[i*numDP], sizeof(double[numDP]));
 	}
 	rf.close();
-	
+
 	if (!rf.good()) {
 		cout << "Error occurred while reading distance matrix file." << endl;
 	}
@@ -134,7 +134,7 @@ void exportMatrix() {
 	for (int i=0; i<numCL + 1; i++) {
 		wf.write((char *) &distanceMatrix[i*numDP], sizeof(double[numDP]));
 	}
-	
+
 	wf.close();
 
 	if(!wf.good()) {
@@ -150,7 +150,7 @@ double HaversineDistance(double* a, double* b) {
    double dlat = fabs(a[1] - b[1]);
    double aa = pow((sin((double)dlon/(double)2*0.01745)),2) + cos(a[0]*0.01745) * cos(b[0]*0.01745) * pow((sin((double)dlat/(double)2*0.01745)),2);
    double c = 2 * atan2(sqrt(aa), sqrt(1-aa));
-   double d = 6371 * c; 
+   double d = 6371 * c;
    return d;
 }
 
@@ -175,7 +175,7 @@ void randomSolution(int *X) {
 				if (X[j] == X[i]) {
 					unique = 0;
 					break;
-				}		
+				}
 		} while (unique == 0);
 	}
 }
