@@ -1,0 +1,28 @@
+//=============================================================================
+
+void importMatrix() {
+	distanceMatrix = new double[numDP*numDP];
+	FILE *f = fopen("distance-matrix", "r");
+	for (int i=0; i<numDP*numDP; i++) {
+		fscanf(f, "%f ", &distanceMatrix[i]);
+	}
+	fclose(f);
+	printf("File distance-matrix was imported.\n");
+}
+//=============================================================================
+
+void exportMatrix() {
+	char filename[255]; sprintf(filename, "distance-matrix");
+	FILE *f = fopen(filename, "w");
+	for (int i=0; i<numDP; i++) {
+		for (int j=0; j<numDP; j++) {
+			fprintf(f, "%.1f ", distanceMatrix[i*numDP + j]);
+		}
+	}
+	fclose(f);
+	printf("File distance-matrix was created.\n");
+}
+
+
+cout << "sizeof(double[numDP*numDP]): " << sizeof(double[numDP*numDP]) << endl;
+cout << "sizeof(distanceMatrix): " << sizeof(distanceMatrix) << endl;

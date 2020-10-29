@@ -1,0 +1,69 @@
+1. Padaryti, kad uždavinį spręstų nuoseklus algoritmas 2 min:
+    Pakeičiau iteracijų skaičių iš 2048 į 2848. Vykdymo laikas pasidarė tinkamas.
+    Skaiciavimo trukme: 125.696
+
+2. Preexisting Facilities (PF) - jau esantys kitos įmonės objektai. 
+Vietovių sąrašas išrikiuotas pagal gyventojų skaičių, tad jei NPF = 3, tai bus Vilnius, Kaunas ir Klaipėda.
+
+3. Atstumų matrica: 10000x10000 masyvas, kuriame yra surašyti atstumai tarp visų miestų. 
+    - 10000 miestų, tad atstumų tarp miestų yra 10000x10000. O Įstrižainės nariai yra lygūs nuliui.
+    - Reikia 100 milijonų kartų apskaičiuoti Haversino atstumą,
+    - Galima lygiagretinti skaičiavimą, duodant kiekvienam procesoriui apskaičiuoti eilučių rinkinį.
+    - Toks masyvas užimtų virš 400 MB RAM jei float tipas naudojamas, 800 MB RAM jei double, o dokumentas gal 1 GB atminties.
+
+4. Lygiagretinimas. Reikia paskirstyti užduotis, pasirūpinti dėl sinchronizavimo bei duomenų perdavimo tarp gijų. Aspektai, kuriuos reikia įgyvendinti:
+    - Kiekvieno bandymo metu turi būti atsižvelgta į jau išrinktų vietovių masyvą - reikia nurodyti, kaip gijos dalinasi šiuo masyvu.
+    - Galima lygiagretinti visą pagrindinį ciklą, bet kryptingiau būtų daryti tai tik su evaluateSolution funkcija.
+    - Pradžiai lygiagretinsiu evaluate Solution funkciją.
+
+5. Lygiagretinimo procesas: 
+    1. Pridedu šias eilutes prieš pat evaluateSolution ciklą:
+    	omp_set_num_threads(4);
+	    #pragma omp parallel for reduction(+:U) private(d, bestPF, bestX)
+    2. Rezultatai:
+        6 bandymai, visada Geriausias sprendinys: 38 0 35 (721486)
+        2 threads:
+            Skaiciavimo trukme: 65 s (63.05, 64.0, 66.3)
+        4 threads:
+            Skaiciavimo trukme: 34 s (34.98, 32.86, 33.69)
+
+6. Atstumų matricos apskaičiavimas kiekvieno vykdymo metu:
+    - Algoritmo trukmė išaugtų dėl 100 milijonų skaičiavimų - šį poveikį padėtų sumažinti matricos išsaugojimas dokumente.
+    - Atstumai skaičiuojami kilometrais, planuoju saugoti vieną skaičių po kableliu.
+    - Kiekvieno bandymo trukmė sumažėtų fiksuotą kiekį kartų (gal dešimtimis kartų);
+    - Matricos sudarymo trukmė: 55.8422 s su 1 procesoriumi, naudojant 4 procesorius: 14.2449
+
+Rezultatai naudojant atstumų matricą:
+    Matricos skaiciavimo trukme: 14.2932
+    Geriausias sprendinys: 38 0 35 (721486)
+    Skaiciavimo trukme: 15.6551
+
+7. Atstumų matricos dokumentas:
+    - Kūrimas užtruko apie 2 min (fprintf rašyta po 1 elementą), naudota maža dalis disko rašymo pajėgumo. Skaitymas irgi lėtas su fscanf.
+    - Dokumentas užima 770 MB vietos.
+    - Naudojant ofstream write ir ifstream read funkcijas, pavyko sukurti dokumentą per 2 sekundes, įkelti per 0.39 sekundės. 
+    (Su HDD disku tai galėtų trukti daug ilgiau)
+    - Dokumento įkėlimo trukmė svyruoja tarp 0.4 ir 2 sekundžių pagal disko užimtumą. 
+    - Viso skaičiavimo trukmė: 1.72 s (1.75, 1.67, 1.70) naudojant 4 procesorius, kai įkėlimas truko 0.4 s.
+
+8. Analizė pagal Amdahl dėsnį:
+Dokumento pakrovimas: 0.61 s
+Paties skaičiavimo trukmė: 4.57 s
+T0 = 5.18 s (Algoritmo vykdymo trukme: 5.23, 5.17, 5.15)
+Alfa = 0.61 / 5.18 = 0.117
+Beta = 1 - Alfa = 0.883
+Maksimalus pagreitėjimas: Sp = 1 / 0.117 = 8.491
+
+Pagreitėjimas pagal procesorius:
+S2 = T0 / (0.61 + 4.57 / 2) = 1.789
+S4  = 2.955
+S8  = 4.385
+S16 = 5.783
+
+9. Patobulinimai:
+    - Pastebėjau, kad užtenka uždavinio sprendimui 51x10000 matricos. Dokumento dydis ir matricos sudarymo trukmė sumažėjo 200 kartų, skaitymo greitis 40 kartų išaugo.
+    Nauji rezultatai:
+        Matricos ikelimo trukme: 0.0156288
+        Geriausias sprendinys: 38 0 35 (721486)
+        Skaiciavimo trukme: 0.828124
+    Dėl tokio pokyčio nuoseklioji algoritmo dalis žymiai sumažėjo, maksimalus galimas pagreitėjimas išaugo.
